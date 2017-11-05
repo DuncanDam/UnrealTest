@@ -15,13 +15,36 @@ AMapGenerator::AMapGenerator()
 void AMapGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void AMapGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
+void AMapGenerator::InitMap()
+{
+	MapData = FMapData(MapData.Width, MapData.Length);
+}
+
+void AMapGenerator::InitDestructibleWall(int32 Seed, float Frequency)
+{
+	FMath::SRandInit(Seed);
+
+	for (int32 XIndex = 0; XIndex < MapData.Width; XIndex++)
+	{
+		for (int32 YIndex = 0; YIndex < MapData.Length; YIndex++)
+		{
+			FMapBlock* Block = MapData.GetBlock(XIndex, YIndex);
+			if (Block->BlockType != Normal)
+				continue;
+
+			float RandomNum = FMath::SRand() * 100;
+			if (RandomNum < Frequency)
+			{
+				Block->BlockType = Destructible;
+			}
+		}
+	}
+}
