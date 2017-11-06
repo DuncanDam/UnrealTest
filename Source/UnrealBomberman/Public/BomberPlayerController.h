@@ -14,7 +14,7 @@ class UNREALBOMBERMAN_API ABomberPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
-	
+	virtual void SetupInputComponent() override;
 	
 	
 };

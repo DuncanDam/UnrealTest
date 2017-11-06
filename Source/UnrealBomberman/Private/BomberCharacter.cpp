@@ -22,13 +22,17 @@ void ABomberCharacter::BeginPlay()
 void ABomberCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
 void ABomberCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
 
+void ABomberCharacter::SetTeamNumber(int32 TeamNo)
+{
+	TeamNumber = TeamNo;
+	OnSetTeamNumber();
 }
 

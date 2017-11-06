@@ -2,49 +2,57 @@
 
 #include "MapGenerator.h"
 
-
 // Sets default values
 AMapGenerator::AMapGenerator()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-// Called when the game starts or when spawned
-void AMapGenerator::BeginPlay()
+void AMapGenerator::InitMap(int32 Width, int32 Length, int32 Seed, float Frequency, float BlockSize)
 {
-	Super::BeginPlay();
-}
-
-// Called every frame
-void AMapGenerator::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void AMapGenerator::InitMap()
-{
-	MapData = FMapData(MapData.Width, MapData.Length);
-}
-
-void AMapGenerator::InitDestructibleWall(int32 Seed, float Frequency)
-{
+	MapData = FMapData(Width, Length, BlockSize);
 	FMath::SRandInit(Seed);
 
-	for (int32 XIndex = 0; XIndex < MapData.Width; XIndex++)
-	{
-		for (int32 YIndex = 0; YIndex < MapData.Length; YIndex++)
-		{
-			FMapBlock* Block = MapData.GetBlock(XIndex, YIndex);
-			if (Block->BlockType != Normal)
-				continue;
+	TArray<FVector2D> PlayerSafeZoneList = {
+		FVector2D(0.f, 0.f),
+		FVector2D(0.f, 1.f),
+		FVector2D(1.f, 0.f),
+		FVector2D(Width - 1.f, Length - 1.f),
+		FVector2D(Width - 1.f, Length - 2.f),
+		FVector2D(Width - 2.f, Length - 1.f)
+	};
 
-			float RandomNum = FMath::SRand() * 100;
-			if (RandomNum < Frequency)
+	for (int32 i = 0; i < MapData.SizeWidth; i++)
+	{
+		for (int32 j = 0; j < MapData.SizeLength; j++)
+		{
+			EBlockType Type = Normal;
+
+			//Set Indestructible Walls
+			if ((i >= 1 && i <= Width - 2)
+				&& (j >= 1 && j <= Length - 2)
+				&& (i % 2 != 0 && j % 2 != 0)
+				)
+				Type = Indestructible;
+
+			//Set Player safe zone
+			if (PlayerSafeZoneList.Contains(FVector2D(i, j)))
+				Type = PlayerSafeZone;
+
+			//Set destructible wall base on random seed
+			if (Type == Normal)
 			{
-				Block->BlockType = Destructible;
+				float RandomNum = FMath::SRand() * 100;
+				if (RandomNum < Frequency)
+				{
+					Type = Destructible;
+				}
 			}
+
+			FVector Loc = FVector(i * BlockSize * -1, j * BlockSize, 0);
+
+			MapData.Blocks.Add(FMapBlock(i, j, Type, Loc));
 		}
 	}
+
+	OnInitDone();
 }

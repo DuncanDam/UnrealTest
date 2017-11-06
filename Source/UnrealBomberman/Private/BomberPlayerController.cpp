@@ -2,6 +2,11 @@
 
 #include "BomberPlayerController.h"
 
+void ABomberPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
 
+
+}
 
 

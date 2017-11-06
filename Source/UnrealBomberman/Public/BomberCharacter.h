@@ -26,6 +26,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 TeamNumber;
+	
+	void SetTeamNumber(int32 TeamNo);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSetTeamNumber();
 	
 	
 };
