@@ -105,5 +105,9 @@ void AUnrealBombermanGameMode::SpawnBomber(int32 Team)
 	{
 		Char->SetTeamNumber(Team);
 		Bombers.Add(Char);
+		if (Team == 0)
+			GetMainPC()->P1_Bomber = Char;
+		else
+			GetMainPC()->P2_Bomber = Char;
 	}
 }

@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BomberPlayerController.generated.h"
 
+class ABomberCharacter;
+
 /**
  * 
  */
@@ -16,5 +18,18 @@ class UNREALBOMBERMAN_API ABomberPlayerController : public APlayerController
 	
 	virtual void SetupInputComponent() override;
 	
+	void MoveForward_P1(float Val);
+	void MoveRight_P1(float Val);
+	void OnPlaceBomb_P1();
 	
+	void MoveForward_P2(float Val);
+	void MoveRight_P2(float Val);
+	void OnPlaceBomb_P2();
+
+	void MoveBomberForward(ABomberCharacter* Bomber, float Val);
+	void MoveBomberRight(ABomberCharacter* Bomber, float Val);
+
+public:
+	ABomberCharacter* P1_Bomber;
+	ABomberCharacter* P2_Bomber;
 };
