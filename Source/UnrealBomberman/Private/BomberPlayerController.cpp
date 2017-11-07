@@ -32,7 +32,7 @@ void ABomberPlayerController::OnPlaceBomb_P1()
 {
 	if (P1_Bomber)
 	{
-
+		P1_Bomber->PlaceBomb();
 	}
 }
 
@@ -50,7 +50,7 @@ void ABomberPlayerController::OnPlaceBomb_P2()
 {
 	if (P2_Bomber)
 	{
-
+		P2_Bomber->PlaceBomb();
 	}
 }
 

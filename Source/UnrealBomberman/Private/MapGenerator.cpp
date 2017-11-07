@@ -16,41 +16,47 @@ void AMapGenerator::InitMap(int32 Width, int32 Length, int32 Seed, float Frequen
 		FVector2D(0.f, 0.f),
 		FVector2D(0.f, 1.f),
 		FVector2D(1.f, 0.f),
-		FVector2D(Width - 1.f, Length - 1.f),
-		FVector2D(Width - 1.f, Length - 2.f),
-		FVector2D(Width - 2.f, Length - 1.f)
+		FVector2D(0, Width - 1.f),
+		FVector2D(0, Width - 2.f),
+		FVector2D(1, Width - 1.f)
 	};
 
 	for (int32 i = 0; i < MapData.SizeWidth; i++)
 	{
 		for (int32 j = 0; j < MapData.SizeLength; j++)
 		{
-			EBlockType Type = Normal;
+			FVector Loc = FVector(i * BlockSize * -1, j * BlockSize, 0);
+			FMapBlock NewBlock = FMapBlock(i, j, Normal, Loc);
 
 			//Set Indestructible Walls
 			if ((i >= 1 && i <= Width - 2)
 				&& (j >= 1 && j <= Length - 2)
 				&& (i % 2 != 0 && j % 2 != 0)
 				)
-				Type = Indestructible;
+				NewBlock.BlockType = Indestructible;
 
 			//Set Player safe zone
 			if (PlayerSafeZoneList.Contains(FVector2D(i, j)))
-				Type = PlayerSafeZone;
+				NewBlock.BlockType = PlayerSafeZone;
 
 			//Set destructible wall base on random seed
-			if (Type == Normal)
+			if (NewBlock.BlockType == Normal)
 			{
 				float RandomNum = FMath::SRand() * 100;
 				if (RandomNum < Frequency)
 				{
-					Type = Destructible;
+					NewBlock.BlockType = Destructible;
+					float PowerUpChance = FMath::FRandRange(0.f, 100.f);
+					if (PowerUpChance < 30.f)
+					{
+						NewBlock.bHavePowerUp = true;
+						NewBlock.PowerUpType = TEnumAsByte<EPowerUpType>((uint8)FMath::RandRange(0, 3));
+
+					}
 				}
 			}
 
-			FVector Loc = FVector(i * BlockSize * -1, j * BlockSize, 0);
-
-			MapData.Blocks.Add(FMapBlock(i, j, Type, Loc));
+			MapData.Blocks.Add(NewBlock);
 		}
 	}
 

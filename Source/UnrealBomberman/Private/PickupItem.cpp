@@ -1,27 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PickupItem.h"
+#include "BomberCharacter.h"
 
-
-// Sets default values
-APickupItem::APickupItem()
+float APickupItem::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-}
-
-// Called when the game starts or when spawned
-void APickupItem::BeginPlay()
-{
-	Super::BeginPlay();
+	if (bIsDestroyed)
+		return DamageAmount;
 	
+	bIsDestroyed = true;
+	SetLifeSpan(0.01f);
+	return DamageAmount;
 }
 
-// Called every frame
-void APickupItem::Tick(float DeltaTime)
+void APickupItem::OnPickup(class ABomberCharacter* Bomber)
 {
-	Super::Tick(DeltaTime);
-
+	if (Bomber == NULL)
+		return;
+	Bomber->GetPowerUp(PowerUp);
+	SetLifeSpan(0.02f);
 }
-

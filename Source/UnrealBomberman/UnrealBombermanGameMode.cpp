@@ -60,6 +60,7 @@ void AUnrealBombermanGameMode::DefaultTimer()
 		CurrentMatchTime++;
 		if (IsMatchOver())
 		{
+			CheckForWinner();
 			EndMatch();
 		}
 	}
@@ -69,6 +70,16 @@ bool AUnrealBombermanGameMode::IsMatchOver()
 {
 	if (CurrentMatchTime >= MatchTime)
 		return true;
+
+	for (ABomberCharacter* Bomber : Bombers)
+	{
+		if (Bomber->bIsDying)
+		{
+			CurrentMatchTime = MatchTime - 1;
+			break;
+		}
+	}
+
 	return false;
 }
 
@@ -89,10 +100,8 @@ ABomberPlayerController* AUnrealBombermanGameMode::GetMainPC()
 void AUnrealBombermanGameMode::SpawnBomber(int32 Team)
 {
 	FRotator StartRotation(ForceInit);
-	FVector StartLocation = FVector(0.f, 0.f, 50.f);
+	FVector StartLocation = MapGenerator->MapData.SpawnPoint(Team);
 
-	if (Team == 1)
-		StartLocation = MapGenerator->MapData.BottomRight();
 
 	FTransform SpawnTransform = FTransform(StartRotation, StartLocation);
 
@@ -110,4 +119,9 @@ void AUnrealBombermanGameMode::SpawnBomber(int32 Team)
 		else
 			GetMainPC()->P2_Bomber = Char;
 	}
+}
+
+void AUnrealBombermanGameMode::CheckForWinner()
+{
+
 }

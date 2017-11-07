@@ -44,4 +44,6 @@ class UNREALBOMBERMAN_API AUnrealBombermanGameMode : public AGameMode
 		
 	class ABomberPlayerController* GetMainPC();
 	void SpawnBomber(int32 Team);
+
+	void CheckForWinner();
 };

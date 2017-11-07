@@ -6,23 +6,26 @@
 #include "GameFramework/Actor.h"
 #include "PickupItem.generated.h"
 
+UENUM(BlueprintType)
+enum EPowerUpType
+{
+	ExtraBlast,
+	ExtraBomb,
+	ExtraSpeed,
+	RemoteControl
+};
+
 UCLASS()
 class UNREALBOMBERMAN_API APickupItem : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
-	APickupItem();
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<EPowerUpType> PowerUp;
+	bool bIsDestroyed;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	
-	
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	UFUNCTION(BlueprintCallable)
+	void OnPickup(class ABomberCharacter* Bomber);
 };

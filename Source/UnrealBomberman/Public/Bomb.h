@@ -12,17 +12,20 @@ class UNREALBOMBERMAN_API ABomb : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABomb();
-
-protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	bool bIsExploded;
 
-	
-	
+	FTimerHandle TimerHandle_Explode;
+	class ABomberCharacter* Bomber;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	void InitBomb(class ABomberCharacter* NewBomber);
+	void Explode();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnExplode(int32 BombBlastRange);
+
 };

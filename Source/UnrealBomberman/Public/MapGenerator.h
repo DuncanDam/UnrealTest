@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PickupItem.h"
 #include "MapGenerator.generated.h"
 
 UENUM(BlueprintType)
@@ -31,6 +32,12 @@ struct FMapBlock
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector Location;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bHavePowerUp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TEnumAsByte<EPowerUpType> PowerUpType;
 
 	FMapBlock() {}
 	FMapBlock(int32 NewX, int32 NewY, TEnumAsByte<EBlockType> NewType, FVector NewLoc) {
@@ -80,6 +87,12 @@ struct FMapData
 
 	FVector BottomRight() {
 		return FVector(BlockSize - Length, Width - BlockSize, BlockSize / 2.f);
+	}
+
+	FVector SpawnPoint(int32 TeamNo) {
+		if (TeamNo == 0)
+			return FVector(0.f, 0.f, 50.f);
+		return FVector(0, Width - BlockSize, BlockSize / 2.f);
 	}
 };
 
