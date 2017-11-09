@@ -3,6 +3,7 @@
 #include "BomberCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Bomb.h"
+#include "MapGenerator.h"
 
 ABomberCharacter::ABomberCharacter()
 {
@@ -19,21 +20,17 @@ void ABomberCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	PlacedBombs = TArray<ABomb*>();
-	PlacedBombs.Empty();
 }
 
 void ABomberCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//Count down remote control time
 	if (CurrentRemoteControlTime > 0)
 	{
 		CurrentRemoteControlTime -= DeltaTime;
 	}
-}
-
-void ABomberCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 float ABomberCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -41,22 +38,16 @@ float ABomberCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dama
 	if (Damage <= 0 || bIsDying)
 		return Damage;
 
+	//Set character is dead
 	bIsDying = true;
 	return Damage;
 }
 
 void ABomberCharacter::SetTeamNumber(int32 TeamNo)
 {
+	//Set team number and trigger an event to change character color
 	TeamNumber = TeamNo;
 	OnSetTeamNumber();
-}
-
-FVector ABomberCharacter::CurrentBlockLocation()
-{
-	FVector Result = GetActorLocation();
-	Result.X = (int32)((Result.X - 50) / 100.f) * 100.f;
-	Result.Y = (int32)((Result.Y + 50) / 100.f) * 100.f;
-	return Result;
 }
 
 int32 ABomberCharacter::GetMaxBombCount()
@@ -66,22 +57,14 @@ int32 ABomberCharacter::GetMaxBombCount()
 
 void ABomberCharacter::PlaceBomb()
 {
+	if (bIsDying)
+		return;
+
 	//Detonate bomb instead of place another one
-	if (CurrentRemoteControlTime > 0 && CurrentBombCount > 0)
+	if (CanPlaceBomb())
 	{
-		if (PlacedBombs.Num() > 0)
-		{
-			for (int32 i = 0; i <= PlacedBombs.Num(); i++)
-			{
-				ABomb* Bomb = PlacedBombs[i];
-				if (Bomb)
-					Bomb->Explode();
-			}
-		}		
-	}
-	else if (CanPlaceBomb())
-	{
-		FVector SpawnLocation = CurrentBlockLocation();
+		//Convert Character location to block location
+		FVector SpawnLocation = AMapGenerator::GetBlockLocation(GetActorLocation());
 		FRotator SpawnRotation = FRotator(ForceInit);
 		FTransform SpawnTranform = FTransform(SpawnRotation, SpawnLocation);
 
@@ -89,10 +72,24 @@ void ABomberCharacter::PlaceBomb()
 		SpawnInfo.Instigator = this;
 		SpawnInfo.ObjectFlags |= RF_Transient;
 
+		//Spawn bomb on exact block character is standing in
 		ABomb* NewBomb = GetWorld()->SpawnActor<ABomb>(BombClass, SpawnTranform, SpawnInfo);
 		NewBomb->InitBomb(this);
 		PlacedBombs.Add(NewBomb);
 		UseBomb(1);
+	}
+	//Remote control bomb handle
+	else if (CurrentRemoteControlTime > 0)
+	{
+		if (PlacedBombs.Num() > 0)
+		{
+			for (int32 i = 0; i < PlacedBombs.Num(); i++)
+			{
+				ABomb* Bomb = PlacedBombs[i];
+				if (Bomb)
+					Bomb->Explode();
+			}
+		}
 	}
 }
 
@@ -100,15 +97,15 @@ bool ABomberCharacter::CanPlaceBomb()
 {
 	if (BombClass == NULL)
 		return false;
-	if (PlacedBombs.Num() >= GetMaxBombCount())
+	if (BombCount >= GetMaxBombCount())
 		return false;
-	if (CurrentBombCount >= GetMaxBombCount())
-		return false;
+
 	return true;
 }
 
 void ABomberCharacter::GetPowerUp(EPowerUpType PowerType)
 {
+	//Power up pickup handle
 	switch (PowerType)
 	{
 		case ExtraBlast:
@@ -118,7 +115,7 @@ void ABomberCharacter::GetPowerUp(EPowerUpType PowerType)
 			MaxBombCount++;
 			break;
 		case ExtraSpeed:
-			GetCharacterMovement()->MaxWalkSpeed += 50;
+			GetCharacterMovement()->MaxWalkSpeed += 100;
 			break;
 		case RemoteControl:
 			CurrentRemoteControlTime = RemoteControlDuration;
@@ -126,8 +123,8 @@ void ABomberCharacter::GetPowerUp(EPowerUpType PowerType)
 	}
 }
 
-void ABomberCharacter::UseBomb(int32 Count)
+void ABomberCharacter::UseBomb(int Count)
 {
-	CurrentBombCount += Count;
-	CurrentBombCount = FMath::Min(CurrentBombCount, GetMaxBombCount());
+	BombCount += Count;
+	BombCount = FMath::Clamp(BombCount, 0, GetMaxBombCount());
 }

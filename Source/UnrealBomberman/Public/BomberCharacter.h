@@ -4,10 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "PickupItem.h"
 #include "BomberCharacter.generated.h"
 
 class ABomb;
+
+UENUM(BlueprintType)
+enum EPowerUpType
+{
+	ExtraBlast,
+	ExtraBomb,
+	ExtraSpeed,
+	RemoteControl
+};
 
 UCLASS()
 class UNREALBOMBERMAN_API ABomberCharacter : public ACharacter
@@ -16,12 +24,12 @@ class UNREALBOMBERMAN_API ABomberCharacter : public ACharacter
 
 public:
 	int32 MaxBombCount;
-	int32 CurrentBombCount;
 	int32 BombLifeSpan;
 	float RemoteControlDuration;
 	float CurrentRemoteControlTime;
 	int32 BlastRange;
 	bool bIsDying;
+	int32 BombCount;
 
 	UPROPERTY()
 	TArray<ABomb*> PlacedBombs;
@@ -32,7 +40,6 @@ public:
 	ABomberCharacter();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
 	UPROPERTY(BlueprintReadOnly)
@@ -41,9 +48,7 @@ public:
 	void SetTeamNumber(int32 TeamNo);
 	
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnSetTeamNumber();
-	
-	FVector CurrentBlockLocation();
+	void OnSetTeamNumber();	
 
 	int32 GetMaxBombCount();
 
@@ -51,7 +56,8 @@ public:
 	
 	bool CanPlaceBomb();
 
+	UFUNCTION(BlueprintCallable)
 	void GetPowerUp(EPowerUpType PowerType);
 
-	void UseBomb(int32 Count);
+	void UseBomb(int Count);
 };

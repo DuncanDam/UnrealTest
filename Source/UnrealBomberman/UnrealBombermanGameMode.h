@@ -13,7 +13,7 @@ UCLASS()
 class UNREALBOMBERMAN_API AUnrealBombermanGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+
 	FTimerHandle TimerHandle_DefaultTimer;
 	
 	UPROPERTY(config)
@@ -23,12 +23,13 @@ class UNREALBOMBERMAN_API AUnrealBombermanGameMode : public AGameMode
 	int32 NumberOfPlayers;
 
 	TSubclassOf<class ABomberCharacter> BomberPawnClass;
-	TArray<class ABomberCharacter*> Bombers;
 
 	TSubclassOf<class AMapGenerator> MapGeneratorClass;
-	class AMapGenerator* MapGenerator;
 
 	class ABomberPlayerController* MainPC;
+
+	class AMapGenerator* MapGenerator;
+	int32 WinnerTeam = -1;
 
 	AUnrealBombermanGameMode();
 
@@ -46,4 +47,26 @@ class UNREALBOMBERMAN_API AUnrealBombermanGameMode : public AGameMode
 	void SpawnBomber(int32 Team);
 
 	void CheckForWinner();
+
+public:
+	UFUNCTION(BlueprintPure)
+	class AMapGenerator* GetMapGenerator() const;
+
+	UFUNCTION(BlueprintPure)
+	float GetMatchTime() const;
+
+	UFUNCTION(BlueprintPure)
+	int32 GetWinnerTeam();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnEndMatch();
+
+	UFUNCTION(BlueprintPure)
+	TArray<class ABomberCharacter*> GetBombers();
+
+	UFUNCTION(BlueprintPure)
+	float GetBombersMaxDistToCenter();
+
+	UFUNCTION(BlueprintPure)
+	int32 GetTeamScore(int32 Team);
 };

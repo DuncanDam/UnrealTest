@@ -16,8 +16,12 @@ class UNREALBOMBERMAN_API ABomberPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
-	virtual void SetupInputComponent() override;
+	ABomberPlayerController();
 	
+	virtual void SetupInputComponent() override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
+
 	void MoveForward_P1(float Val);
 	void MoveRight_P1(float Val);
 	void OnPlaceBomb_P1();
@@ -30,6 +34,6 @@ class UNREALBOMBERMAN_API ABomberPlayerController : public APlayerController
 	void MoveBomberRight(ABomberCharacter* Bomber, float Val);
 
 public:
-	ABomberCharacter* P1_Bomber;
-	ABomberCharacter* P2_Bomber;
+	UPROPERTY(BlueprintReadOnly)
+	TArray<ABomberCharacter*> Bombers;
 };

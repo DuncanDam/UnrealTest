@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PickupItem.h"
+#include "BomberCharacter.h"
 #include "MapGenerator.generated.h"
 
 UENUM(BlueprintType)
@@ -34,7 +34,7 @@ struct FMapBlock
 	FVector Location;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bHavePowerUp;
+	bool bHavePowerUp = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte<EPowerUpType> PowerUpType;
@@ -68,6 +68,9 @@ struct FMapData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BlockSize;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector MiddlePoint;
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FMapBlock> Blocks;
 
@@ -78,6 +81,7 @@ struct FMapData
 		BlockSize = NewBlockSize;
 		Width = SizeWidth * BlockSize;
 		Length = SizeLength * BlockSize;
+		MiddlePoint = FVector(Width * -0.5f, Length * 0.5f, 0.f);
 	}
 
 	FMapBlock* GetBlock(int32 X, int32 Y) {
@@ -92,7 +96,7 @@ struct FMapData
 	FVector SpawnPoint(int32 TeamNo) {
 		if (TeamNo == 0)
 			return FVector(0.f, 0.f, 50.f);
-		return FVector(0, Width - BlockSize, BlockSize / 2.f);
+		return BottomRight();
 	}
 };
 
@@ -108,8 +112,11 @@ public:
 	AMapGenerator();
 
 	UFUNCTION(BlueprintCallable)
-	void InitMap(int32 Width = 17, int32 Length = 17, int32 Seed = 0, float Frequency = 50.f, float BlockSize = 100.f);
+	void InitMap(int32 Width = 15, int32 Length = 15, int32 Seed = 0, float Frequency = 50.f, float BlockSize = 100.f);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInitDone();
+
+	UFUNCTION(BlueprintPure)
+	static FVector GetBlockLocation(const FVector& CurrentLoc);
 };

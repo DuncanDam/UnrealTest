@@ -6,18 +6,7 @@
 
 ABomb::ABomb()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
-}
-
-void ABomb::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void ABomb::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 float ABomb::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
@@ -25,6 +14,7 @@ float ABomb::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEve
 	if (DamageAmount <= 0)
 		return 0.f;
 
+	//Explode on being damaged;
 	Explode();	
 	return 0.f;
 }
@@ -42,9 +32,14 @@ void ABomb::Explode()
 
 	bIsExploded = true;
 
+	//Clear timer
 	GetWorldTimerManager().ClearTimer(TimerHandle_Explode);
+
+	//Remove bomb place on character
 	Bomber->PlacedBombs.Remove(this);
 	Bomber->UseBomb(-1);
+
+	TArray<float> ExplosionDistance = { 50.f, 50.f, 50.f, 50.f };
 
 	UWorld* World = GetWorld();
 	if (World)
@@ -53,15 +48,12 @@ void ABomb::Explode()
 		FQuat Rotator = GetActorRotation().Quaternion();
 		FVector StartTrace = GetActorLocation();
 		FVector EndTrace = FVector::ZeroVector;
-		FCollisionShape TraceShape = FCollisionShape();
-		TraceShape.SetBox(FVector(49.f, 49.f, 10.f));
 		
-		static FName BombTag = FName(TEXT("BombTrace"));
-		
+		static FName BombTag = FName(TEXT("BombTrace"));		
 		FCollisionQueryParams TraceParams(BombTag, true, this);
 		TraceParams.bTraceAsyncScene = true;
 
-		//Trace in 4 direction
+		//Do line trace in 4 direction
 		for (int32 i = 0; i < 4; i++)
 		{
 			FVector Dir = FVector::ForwardVector;
@@ -72,23 +64,50 @@ void ABomb::Explode()
 			else if (i == 3)
 				Dir = -1 * FVector::RightVector;
 			
-			EndTrace = StartTrace + Dir * Bomber->BlastRange * 100.f;
-			
+			float BombRange = Bomber->BlastRange * 100.f + 49.f;
+			EndTrace = StartTrace + Dir * BombRange;
+
 			TArray<FHitResult> OutHits;
-			if (World->SweepMultiByChannel(OutHits, StartTrace, EndTrace, Rotator, COLLISION_BOMB, TraceShape, TraceParams))
+
+			bool bIsBlockingHit = false;
+
+			//Cast a line trace to check for any object in bomb blast
+			//Stop trace at first blocking hit
+			bIsBlockingHit = World->LineTraceMultiByChannel(OutHits, StartTrace, EndTrace, COLLISION_BOMB, TraceParams);
+			
+			//Run through all hit result to check for valid object to deal damage
+			for (const FHitResult& Hit : OutHits)
 			{
-				for (const FHitResult& Hit : OutHits)
+				//Deal damage to actor
+				if (Hit.GetActor() != NULL && Hit.GetActor()->bCanBeDamaged)
 				{
-					if (Hit.GetActor() != NULL && Hit.GetActor()->bCanBeDamaged)
+					Hit.GetActor()->TakeDamage(1, FDamageEvent(), NULL, Bomber);
+				}
+
+				//Check if hitting wall then calculate for explosion effect length
+				if (Hit.IsValidBlockingHit())
+				{
+					bIsBlockingHit = true;
+					float Dist = (Hit.ImpactPoint - StartTrace).Size();
+					if (Dist > ExplosionDistance[i])
 					{
-						Hit.GetActor()->TakeDamage(1, FDamageEvent(), NULL, Bomber);
+						ExplosionDistance[i] = Dist;
 					}
 				}
+			}
+			
+			//If no block hit display bomb explosion at maximum range
+			if (!bIsBlockingHit)
+			{
+				ExplosionDistance[i] = BombRange;
 			}
 		}
 	}
 
-	OnExplode(Bomber->BlastRange);
-	SetLifeSpan(0.2f);
+	//Call event on blueprint to spawn effect
+	OnExplode(ExplosionDistance);
+	
+	//Destroy after a brief time
+	SetLifeSpan(0.1f);
 
 }

@@ -4,6 +4,11 @@
 #include "BomberCharacter.h"
 #include "GameFramework/Pawn.h"
 
+ABomberPlayerController::ABomberPlayerController()
+{
+	bAutoManageActiveCameraTarget = false;
+}
+
 void ABomberPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -17,46 +22,56 @@ void ABomberPlayerController::SetupInputComponent()
 	InputComponent->BindAction("PlaceBomb_P2", IE_Pressed, this, &ABomberPlayerController::OnPlaceBomb_P2);
 }
 
+void ABomberPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+}
+
+void ABomberPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	Bombers = TArray<ABomberCharacter*>();
+}
 
 void ABomberPlayerController::MoveForward_P1(float Val)
 {
-	MoveBomberForward(P1_Bomber, Val);
+	if (Bombers.Num() > 0)
+		MoveBomberForward(Bombers[0], Val);
 }
 
 void ABomberPlayerController::MoveRight_P1(float Val)
 {
-	MoveBomberRight(P1_Bomber, Val);
+	if (Bombers.Num() > 0)
+		MoveBomberRight(Bombers[0], Val);
 }
 
 void ABomberPlayerController::OnPlaceBomb_P1()
 {
-	if (P1_Bomber)
-	{
-		P1_Bomber->PlaceBomb();
-	}
+	if (Bombers.Num() > 0 && Bombers[0])
+		Bombers[0]->PlaceBomb();
 }
 
 void ABomberPlayerController::MoveForward_P2(float Val)
 {
-	MoveBomberForward(P2_Bomber, Val);
+	if (Bombers.Num() > 1 && Bombers[1])
+		MoveBomberForward(Bombers[1], Val);
 }
 
 void ABomberPlayerController::MoveRight_P2(float Val)
 {
-	MoveBomberRight(P2_Bomber, Val);
+	if (Bombers.Num() > 1 && Bombers[1])
+		MoveBomberRight(Bombers[1], Val);
 }
 
 void ABomberPlayerController::OnPlaceBomb_P2()
 {
-	if (P2_Bomber)
-	{
-		P2_Bomber->PlaceBomb();
-	}
+	if (Bombers.Num() > 1 && Bombers[1])
+		Bombers[1]->PlaceBomb();
 }
 
 void ABomberPlayerController::MoveBomberForward(ABomberCharacter* Bomber, float Val)
 {
-	if (Bomber == NULL)
+	if (Bomber == NULL || Bomber->bIsDying)
 		return;
 
 	Bomber->AddMovementInput(FVector::ForwardVector, Val, true);
@@ -64,7 +79,7 @@ void ABomberPlayerController::MoveBomberForward(ABomberCharacter* Bomber, float 
 
 void ABomberPlayerController::MoveBomberRight(ABomberCharacter* Bomber, float Val)
 {
-	if (Bomber == NULL)
+	if (Bomber == NULL || Bomber->bIsDying)
 		return;
 
 	Bomber->AddMovementInput(FVector::RightVector, Val, true);

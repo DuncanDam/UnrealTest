@@ -16,9 +16,9 @@ void AMapGenerator::InitMap(int32 Width, int32 Length, int32 Seed, float Frequen
 		FVector2D(0.f, 0.f),
 		FVector2D(0.f, 1.f),
 		FVector2D(1.f, 0.f),
-		FVector2D(0, Width - 1.f),
-		FVector2D(0, Width - 2.f),
-		FVector2D(1, Width - 1.f)
+		FVector2D(Length - 1.f, Width - 1.f),
+		FVector2D(Length - 1.f, Width - 2.f),
+		FVector2D(Length - 2.f, Width - 1.f)
 	};
 
 	for (int32 i = 0; i < MapData.SizeWidth; i++)
@@ -46,8 +46,8 @@ void AMapGenerator::InitMap(int32 Width, int32 Length, int32 Seed, float Frequen
 				if (RandomNum < Frequency)
 				{
 					NewBlock.BlockType = Destructible;
-					float PowerUpChance = FMath::FRandRange(0.f, 100.f);
-					if (PowerUpChance < 30.f)
+					float PowerUpChance = FMath::RandRange(0.f, 1.f) * 100;
+					if (PowerUpChance <= 30.f)
 					{
 						NewBlock.bHavePowerUp = true;
 						NewBlock.PowerUpType = TEnumAsByte<EPowerUpType>((uint8)FMath::RandRange(0, 3));
@@ -61,4 +61,12 @@ void AMapGenerator::InitMap(int32 Width, int32 Length, int32 Seed, float Frequen
 	}
 
 	OnInitDone();
+}
+
+FVector AMapGenerator::GetBlockLocation(const FVector& CurrentLoc)
+{
+	FVector Result = CurrentLoc;
+	Result.X = (int32)((Result.X - 50) / 100.f) * 100.f;
+	Result.Y = (int32)((Result.Y + 50) / 100.f) * 100.f;
+	return Result;
 }

@@ -12,10 +12,7 @@ class UNREALBOMBERMAN_API ABomb : public AActor
 	GENERATED_BODY()
 	
 public:	
-	ABomb();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-	
+	ABomb();	
 	bool bIsExploded;
 
 	FTimerHandle TimerHandle_Explode;
@@ -26,6 +23,6 @@ public:
 	void Explode();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnExplode(int32 BombBlastRange);
+	void OnExplode(const TArray<float>& ExplosionDist);
 
 };
